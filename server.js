@@ -1,7 +1,8 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
 require('dotenv').config();
+
+const express = require('express');
+const cors = require('cors');
+const pool = require('./src/config/db');
 
 const app = express();
 
@@ -9,24 +10,25 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Conexión a MongoDB Atlas
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('¡Conectado exitosamente a MongoDB Atlas!'))
-  .catch((error) => console.error('Error al conectar a MongoDB:', error));
+// Probar la conexión a la base
+pool.query('SELECT NOW()')
+  .then(() => console.log('¡Conectado exitosamente a Neon (PostgreSQL)!'))
+  .catch((error) => console.error('Error al conectar a la base:', error));
 
 // Ruta de prueba
 app.get('/', (req, res) => {
   res.send('API de la Ticketera funcionando 🚀');
 });
 
-// Importar y usar las rutas de tickets
-const ticketRoutes = require('./routes/tickets');
-app.use('/api/tickets', ticketRoutes);
+// Rutas
+app.use('/api/tickets', require('./src/routes/tickets'));
+//app.use('/api/metricas', require('./src/routes/metricas'));
+
+// Autenticación (pendiente de migrar a Postgres)
+// app.use('/api/auth', require('./src/routes/auth'));
+
 // Puerto del servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor corriendo en el puerto ${PORT}`);
 });
-// autenticacion
-const authRoutes = require('./routes/auth');
-app.use('/api/auth', authRoutes);
