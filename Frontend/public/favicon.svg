@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Fondo azul redondeado -->
+  <rect width="64" height="64" rx="14" fill="#0259DD"/>
+  <!-- Ticket blanco con las muescas laterales -->
+  <rect x="9" y="15" width="46" height="34" rx="5" fill="#FFFFFF"/>
+  <circle cx="9" cy="32" r="6" fill="#0259DD"/>
+  <circle cx="55" cy="32" r="6" fill="#0259DD"/>
+  <!-- Barras de gráfico: el dashboard -->
+  <rect x="20" y="33" width="6" height="9" rx="1.5" fill="#84AFFB"/>
+  <rect x="29" y="28" width="6" height="14" rx="1.5" fill="#0259DD"/>
+  <rect x="38" y="22" width="6" height="20" rx="1.5" fill="#FF6648"/>
+</svg>
