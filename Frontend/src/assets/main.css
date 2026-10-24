@@ -1,0 +1,201 @@
+/*
+  Estilos globales de la aplicación.
+  Los colores y medidas se definen una sola vez como variables (tokens)
+  y se reutilizan en todos los componentes: así el diseño es consistente
+  (heurística 4 de Nielsen: consistencia y estándares).
+*/
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+
+:root {
+  /* Colores base */
+  --color-fondo: #ffffff;
+  --color-fondo-suave: #f6f5fe;
+  --color-borde: #eceef5;
+  --color-borde-fuerte: #e3e5ef;
+  --color-texto: #1e2033;
+  --color-texto-suave: #5e6278;
+  --color-principal: #6d5bd0;
+  --color-principal-oscuro: #4f3fb0;
+  --color-principal-claro: #eeebfc;
+
+  /* Estados de los tickets: cada estado tiene siempre el mismo color */
+  --estado-realizado: #3dbe8b;
+  --estado-en-progreso: #3e9be0;
+  --estado-pendiente: #f5a524;
+  --alerta: #f06a5a;
+
+  /* Fondos y textos de las etiquetas (contraste suficiente para WCAG AA) */
+  --pill-verde-fondo: #dff5ec;
+  --pill-verde-texto: #1b6b4d;
+  --pill-azul-fondo: #e2f0fb;
+  --pill-azul-texto: #1c5a8c;
+  --pill-ambar-fondo: #fef1d9;
+  --pill-ambar-texto: #7f5200;
+  --pill-rojo-fondo: #fde8e5;
+  --pill-rojo-texto: #a3352a;
+  --pill-gris-fondo: #f1f2f7;
+  --pill-gris-texto: #4a4e66;
+
+  --radio: 16px;
+  --radio-chico: 10px;
+  --sombra: 0 1px 2px rgba(30, 32, 51, 0.05);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: var(--color-principal-oscuro);
+}
+
+/* Foco visible para quien navega con teclado (accesibilidad) */
+:focus-visible {
+  outline: 3px solid var(--color-principal);
+  outline-offset: 2px;
+}
+
+/* ---------- Piezas reutilizables ---------- */
+
+.tarjeta {
+  background: var(--color-fondo);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+  padding: 20px;
+}
+
+.encabezado-pagina {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.encabezado-pagina h1 {
+  font-size: 28px;
+  font-weight: 800;
+}
+
+.texto-suave {
+  color: var(--color-texto-suave);
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: var(--radio-chico);
+  border: 1px solid var(--color-borde-fuerte);
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton:hover:not(:disabled) {
+  background: var(--color-fondo-suave);
+}
+
+.boton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.boton-principal {
+  background: var(--color-principal);
+  border-color: var(--color-principal);
+  color: #ffffff;
+}
+
+.boton-principal:hover:not(:disabled) {
+  background: var(--color-principal-oscuro);
+}
+
+.boton-texto {
+  border: 0;
+  background: transparent;
+  color: var(--color-principal-oscuro);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pill-verde {
+  background: var(--pill-verde-fondo);
+  color: var(--pill-verde-texto);
+}
+.pill-azul {
+  background: var(--pill-azul-fondo);
+  color: var(--pill-azul-texto);
+}
+.pill-ambar {
+  background: var(--pill-ambar-fondo);
+  color: var(--pill-ambar-texto);
+}
+.pill-rojo {
+  background: var(--pill-rojo-fondo);
+  color: var(--pill-rojo-texto);
+}
+.pill-gris {
+  background: var(--pill-gris-fondo);
+  color: var(--pill-gris-texto);
+}
+
+/* Mensajes de estado: carga, error y vacío (heurística 1 y 9) */
+.aviso {
+  padding: 14px 16px;
+  border-radius: var(--radio-chico);
+  background: var(--color-fondo-suave);
+  color: var(--color-texto-suave);
+}
+
+.aviso-error {
+  background: var(--pill-rojo-fondo);
+  color: var(--pill-rojo-texto);
+  font-weight: 600;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* Texto solo para lectores de pantalla */
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
