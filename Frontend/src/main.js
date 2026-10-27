@@ -1,3 +1,6 @@
+// Punto de entrada: crea la aplicación Vue, le suma el router y la monta en index.html
+import './assets/main.css'
+
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
