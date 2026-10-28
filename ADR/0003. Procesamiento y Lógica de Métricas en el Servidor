@@ -1,0 +1,24 @@
+Título/ID 
+
+0003. Procesamiento y Lógica de Métricas en el Servidor
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Contexto
+El sistema necesita procesar métricas complejas solicitadas por el usuario mediante filtros dinámicos, requiriendo consultas constantes a la base de datos, mientras que la interfaz debe ofrecer una experiencia visual fluida y interactiva para el dashboard de la ticketera.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Decision
+Se implementó un enfoque híbrido: el procesamiento pesado de las consultas, filtrado de datos y lógica de negocio se gestiona y renderiza desde el servidor (**Server-Side/Backend processing**).
+  * Por su parte, la capa visual del frontend (desarrollada con Vue.js) opera en el navegador del usuario mediante renderizado del lado del cliente (**CSR - Client-Side Rendering**) para la manipulación y visualización de los componentes del dashboard.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Consecuencias
+
+Positivas: * Clara separación de responsabilidades: el servidor protege y procesa la data pesada, mientras que el cliente maneja una interfaz altamente dinámica y reactiva.
+           * Optimización en la visualización de métricas sin sobrecargar la lógica de transporte.
+Negativas:  Ninguna relevante para la escala actual del proyecto; la integración entre el backend y el frontend basado en componentes de Vue fluyó de manera natural.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Estado
+
+Aceptado
+
+
+
+
