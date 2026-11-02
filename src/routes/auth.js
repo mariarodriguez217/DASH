@@ -1,12 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const authController = require('../controllers/authController');
-const { verificarToken, verificarAdmin } = require('../middleware/authMiddleware');
+const { login } = require('../controllers/authController');
 
-// Ruta para hacer login (pública)
-router.post('/login', authController.login);
-
-
-router.post('/registrar', verificarToken, verificarAdmin, authController.crearUsuario);
+router.post('/login', login);
 
 module.exports = router;

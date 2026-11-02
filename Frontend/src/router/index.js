@@ -4,10 +4,18 @@
 */
 import { createRouter, createWebHistory } from 'vue-router'
 import DashboardView from '../views/DashboardView.vue'
+import LoginView from '../views/LoginView.vue'
+import { obtenerToken } from '../api/sesion'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+      meta: { titulo: 'Ingresar' },
+    },
     {
       path: '/',
       name: 'dashboard',
@@ -25,6 +33,20 @@ const router = createRouter({
     // Cualquier dirección desconocida vuelve al dashboard
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
+})
+
+// Guard de sesión: se ejecuta antes de cada cambio de pantalla.
+// - Sin sesión, cualquier pantalla redirige al login.
+// - Con sesión, el login redirige al dashboard.
+router.beforeEach((destino) => {
+  const logueado = !!obtenerToken()
+
+  if (destino.name !== 'login' && !logueado) {
+    return { name: 'login' }
+  }
+  if (destino.name === 'login' && logueado) {
+    return { name: 'dashboard' }
+  }
 })
 
 // Actualiza el título de la pestaña del navegador en cada cambio de pantalla

@@ -1,13 +1,35 @@
 <!--
   Estructura general: menú lateral fijo + contenido de la pantalla actual.
   <RouterView /> es el lugar donde el router dibuja la pantalla que corresponde.
+  En la pantalla de login no se muestra el menú: solo el formulario.
 -->
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
+import { cerrarSesion, obtenerSesion } from './api/sesion'
+
+const route = useRoute()
+const router = useRouter()
+
+// true cuando estamos en /login: ahí no se dibuja el menú lateral
+const esLogin = computed(() => route.name === 'login')
+
+// Nombre del usuario logueado (se vuelve a leer en cada cambio de pantalla)
+const nombreUsuario = computed(() => {
+  route.fullPath
+  return obtenerSesion()?.usuario?.nombre ?? ''
+})
+
+function salir() {
+  cerrarSesion()
+  router.push({ name: 'login' })
+}
 </script>
 
 <template>
-  <div class="layout">
+  <RouterView v-if="esLogin" />
+
+  <div v-else class="layout">
     <nav class="menu" aria-label="Navegación principal">
       <div class="marca">
         <span class="marca-icono" aria-hidden="true">
@@ -66,6 +88,29 @@ import { RouterLink, RouterView } from 'vue-router'
           </svg>
           Tickets
         </RouterLink>
+      </div>
+
+      <!-- Pie del menú: usuario logueado y botón para cerrar sesión -->
+      <div class="menu-pie">
+        <p v-if="nombreUsuario" class="menu-usuario">Sesión: {{ nombreUsuario }}</p>
+        <button type="button" class="menu-link menu-salir" @click="salir">
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <path d="M16 17l5-5-5-5" />
+            <path d="M21 12H9" />
+          </svg>
+          Salir
+        </button>
       </div>
     </nav>
 
@@ -147,6 +192,32 @@ import { RouterLink, RouterView } from 'vue-router'
 
 .menu-link.router-link-active svg {
   color: var(--color-principal);
+}
+
+/* Pie del menú: queda al final de la columna */
+.menu-pie {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-usuario {
+  margin: 0;
+  padding: 0 12px;
+  font-size: 13px;
+  color: var(--pill-gris-texto);
+}
+
+/* El botón "Salir" reutiliza el aspecto de .menu-link */
+.menu-salir {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
 }
 
 /* "flex: 999" hace que el contenido ocupe todo el ancho disponible;

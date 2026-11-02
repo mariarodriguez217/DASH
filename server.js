@@ -1,5 +1,7 @@
 require('dotenv').config();
 
+const verificarToken = require('./src/middleware/auth');
+
 const express = require('express');
 const cors = require('cors');
 const pool = require('./src/config/db');
@@ -9,6 +11,7 @@ const app = express();
 // Middlewares
 app.use(express.json());
 app.use(cors());
+
 
 // Probar la conexión a la base
 pool.query('SELECT NOW()')
@@ -22,6 +25,8 @@ app.get('/', (req, res) => {
 
 // Rutas
 app.use('/api/tickets', require('./src/routes/tickets'));
+app.use('/api/auth', require('./src/routes/auth'));
+app.use('/api/tickets', verificarToken, require('./src/routes/tickets'));
 //app.use('/api/metricas', require('./src/routes/metricas'));
 
 // Autenticación (pendiente de migrar a Postgres)
