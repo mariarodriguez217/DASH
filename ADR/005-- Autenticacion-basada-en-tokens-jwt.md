@@ -1,6 +1,6 @@
 Título/ID 
 
-0004-autenticacion-basada-en-tokens-jwt
+005-- Autenticacion-basada-en-tokens-jwt
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Contexto
 La aplicación de ticketera requiere un mecanismo seguro para autenticar usuarios (como administradores y operadores) y controlar el acceso a los diferentes endpoints de la API y recursos protegidos, manteniendo un esquema eficiente y desacoplado entre el backend y el frontend.

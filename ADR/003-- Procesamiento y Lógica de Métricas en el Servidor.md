@@ -1,6 +1,6 @@
 Título/ID 
 
-0003. Procesamiento y Lógica de Métricas en el Servidor
+003-- Procesamiento y Lógica de Métricas en el Servidor
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Contexto
 El sistema necesita procesar métricas complejas solicitadas por el usuario mediante filtros dinámicos, requiriendo consultas constantes a la base de datos, mientras que la interfaz debe ofrecer una experiencia visual fluida y interactiva para el dashboard de la ticketera.
@@ -18,7 +18,5 @@ Negativas:  Ninguna relevante para la escala actual del proyecto; la integració
 Estado
 
 Aceptado
-
-
 
 

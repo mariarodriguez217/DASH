@@ -1,6 +1,6 @@
 Título/ID 
 
-002-Adopción de Sequelize como ORM y Estrategia de Mapeo.md>
+004-- Adopción de Sequelize como ORM y Estrategia de Mapeo.md>
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Contexto
 Tras migrar a una base de datos relacional (PostgreSQL), requeríamos una herramienta de mapeo objeto-relacional (ORM) para interactuar con la base de datos desde Node.js de forma estructurada, facilitando la gestión de migraciones, modelos y relaciones complejas de la ticketera.
