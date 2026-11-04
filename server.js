@@ -24,7 +24,6 @@ app.get('/', (req, res) => {
 });
 
 // Rutas
-app.use('/api/tickets', require('./src/routes/tickets'));
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/tickets', verificarToken, require('./src/routes/tickets'));
 //app.use('/api/metricas', require('./src/routes/metricas'));
