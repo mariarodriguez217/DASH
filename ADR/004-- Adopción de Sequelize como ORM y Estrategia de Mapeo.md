@@ -18,4 +18,6 @@ Negativas: Curva de aprendizaje para configurar correctamente las asociaciones p
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Estado
 
-Aceptado
+Reemplazado 
+
+En la implementación final los endpoints no usan Sequelize. Las consultas se escriben en SQL con el driver pg (node-postgres), siempre parametrizadas ($1, $2...) para evitar inyección SQL. El motivo es que las métricas del dashboard se calculan con agregaciones propias de PostgreSQL (COUNT ... FILTER, AVG sobre intervalos de fechas, GROUP BY por técnico), que resultan más claras y eficientes escritas directamente en SQL que a través del ORM. La estrategia de herencia de tablas no llegó a implementarse: el modelo final tiene tres tablas simples (tecnicos, tickets, usuarios). Los modelos de Sequelize quedan en src/models/ como referencia del esquema.

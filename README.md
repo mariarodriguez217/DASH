@@ -48,7 +48,7 @@ El sistema separa claramente las capas de una arquitectura web moderna:
 
 | Capa | Tecnología |
 |---|---|
-| Frontend | [React] |
+| Frontend | Vue 3 + Vite (renderizado del lado del cliente, CSR) |
 | Backend | Node.js + Express |
 | Cliente de base de datos | `pg` (node-postgres) |
 | Base de datos | PostgreSQL en [Neon](https://neon.com) |
@@ -61,16 +61,19 @@ El sistema separa claramente las capas de una arquitectura web moderna:
 DASH/
 ├── server.js                     # punto de entrada
 ├── package.json
+├── vercel.json                   # configuración del despliegue en Vercel
 ├── .env                          # variables privadas (NO se sube al repo)
 └── src/
     ├── config/
     │   └── db.js                 # conexión (Pool) a PostgreSQL
     ├── controllers/
+    │   ├── authController.js     # login: valida usuario y contraseña y emite el JWT
     │   └── ticketController.js   # lógica de tickets y métricas
+    ├── middleware/
+    │   └── auth.js               # exige un token válido para acceder a /api/tickets
     └── routes/
-        └── tickets.js            # definición de rutas
-    └── middlewares/
-        └── authMiddleware.js            
+        ├── auth.js               # POST /api/auth/login
+        └── tickets.js            # GET /api/tickets y /api/tickets/metricas
 ```
 
 ## 🧱 Modelo de datos
