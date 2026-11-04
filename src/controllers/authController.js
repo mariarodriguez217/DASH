@@ -1,89 +1,48 @@
-const Usuario = require('../models/Usuario');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const pool = require('../config/db');
 
-
-const JWT_SECRET = process.env.JWT_SECRET
-
-// 1. LOGIN DE USUARIOS (Admin o Lector)
+// POST /api/auth/login
+// Body: { "usuario": "admin", "password": "..." }
+// "usuario" puede ser el nombre ("admin") o el email de la tabla usuarios.
 const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { usuario, password } = req.body;
 
-    // Buscar si el usuario existe en la base de datos
-    const usuario = await Usuario.findOne({ email });
-    if (!usuario) {
-      return res.status(404).json({ error: 'Credenciales inválidas (usuario no encontrado)' });
+    if (!usuario || !password) {
+      return res.status(400).json({ error: 'Usuario y contraseña son obligatorios' });
     }
 
-    // Comparar la contraseña ingresada con la contraseña encriptada en la base de datos
-    const esPasswordValida = await bcrypt.compare(password, usuario.password);
-    if (!esPasswordValida) {
-      return res.status(401).json({ error: 'Credenciales inválidas (contraseña incorrecta)' });
+    const { rows } = await pool.query(
+      `SELECT id, nombre, email, password
+       FROM usuarios
+       WHERE nombre = $1 OR email = $1
+       LIMIT 1`,
+      [usuario]
+    );
+    const admin = rows[0];
+
+    // Mismo mensaje si el usuario no existe o la contraseña está mal,
+    // para no revelar qué usuarios existen.
+    const valido = admin && (await bcrypt.compare(password, admin.password));
+    if (!valido) {
+      return res.status(401).json({ error: 'Credenciales inválidas' });
     }
 
-    // Generar un Token JWT que expira en 8 horas
     const token = jwt.sign(
-      { id: usuario._id, rol: usuario.rol },
-      JWT_SECRET,
+      { id: admin.id, nombre: admin.nombre },
+      process.env.JWT_SECRET,
       { expiresIn: '8h' }
     );
 
     res.json({
-      mensaje: '¡Login exitoso!',
       token,
-      usuario: {
-        nombre: usuario.nombre,
-        email: usuario.email,
-        rol: usuario.rol
-      }
+      usuario: { id: admin.id, nombre: admin.nombre, email: admin.email }
     });
-
   } catch (error) {
-    res.status(500).json({ error: 'Error al iniciar sesión', detalle: error.message });
+    console.error('Error en login:', error.message);
+    res.status(500).json({ error: 'Error al iniciar sesión' });
   }
 };
 
-// 2. CREAR USUARIO (Solo permitido para administradores)
-const crearUsuario = async (req, res) => {
-  try {
-    const { nombre, email, password, rol } = req.body;
-
-    // Verificar si el usuario ya existe
-    const existeUsuario = await Usuario.findOne({ email });
-    if (existeUsuario) {
-      return res.status(400).json({ error: 'El correo electrónico ya está registrado.' });
-    }
-
-    // Encriptar la contraseña
-    const salt = await bcrypt.genSalt(10);
-    const passwordEncriptada = await bcrypt.hash(password, salt);
-
-    // Crear el nuevo usuario (puede ser 'admin' o 'lector')
-    const nuevoUsuario = new Usuario({
-      nombre,
-      email,
-      password: passwordEncriptada,
-      rol: rol || 'lector' // Por defecto se crea como lector si no se especifica
-    });
-
-    await nuevoUsuario.save();
-
-    res.status(201).json({
-      mensaje: 'Usuario creado exitosamente',
-      usuario: {
-        nombre: nuevoUsuario.nombre,
-        email: nuevoUsuario.email,
-        rol: nuevoUsuario.rol
-      }
-    });
-
-  } catch (error) {
-    res.status(500).json({ error: 'Error al registrar el usuario', detalle: error.message });
-  }
-};
-
-module.exports = {
-  login,
-  crearUsuario
-};
+module.exports = { login };

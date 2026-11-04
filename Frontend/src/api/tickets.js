@@ -12,18 +12,27 @@ export function obtenerMetricas() {
   return USAR_MOCKS ? metricasMock() : pedirJSON('/tickets/metricas')
 }
 
-// GET /api/tickets → listado paginado con filtros
-// filtros: { page, limit, tecnico_id, estado, prioridad, categoria, desde, hasta }
+// GET /api/tickets → listado paginado con filtros limpios
 export function listarTickets(filtros) {
-  return USAR_MOCKS ? listarTicketsMock(filtros) : pedirJSON('/tickets', filtros)
+  if (USAR_MOCKS) {
+    return listarTicketsMock(filtros)
+  }
+
+  // LIMPIEZA DE FILTROS: Evita enviar propiedades con strings vacíos, null o undefined
+  const filtrosLimpios = {}
+  if (filtros) {
+    for (const [clave, valor] of Object.entries(filtros)) {
+      if (valor !== '' && valor !== null && valor !== undefined) {
+        filtrosLimpios[clave] = valor
+      }
+    }
+  }
+
+  return pedirJSON('/tickets', filtrosLimpios)
 }
 
 /*
   Exportación a CSV.
-  La API todavía no tiene un endpoint de exportación, así que el front
-  pide todas las páginas del listado (de a 100, el máximo que acepta la API)
-  con los filtros aplicados y arma el archivo en el navegador.
-  Mejora futura: que el back genere el archivo (más eficiente con muchos datos).
 */
 export async function exportarTicketsCSV(filtros, alAvanzar = () => {}) {
   const filas = []
@@ -32,7 +41,7 @@ export async function exportarTicketsCSV(filtros, alAvanzar = () => {}) {
 
   do {
     const respuesta = await listarTickets({ ...filtros, page: pagina, limit: 100 })
-    filas.push(...respuesta.data)
+    filas.push(...(respuesta.data || []))
     totalPaginas = respuesta.totalPages || 1
     alAvanzar(pagina, totalPaginas)
     pagina++
@@ -59,13 +68,9 @@ export async function exportarTicketsCSV(filtros, alAvanzar = () => {}) {
     formatearFecha(t.fecha_resolucion),
   ])
 
-  // Cada valor va entre comillas (y se duplican las comillas internas) para que
-  // una coma o un punto y coma dentro de un título no rompa las columnas.
   const aCelda = (valor) => `"${String(valor ?? '').replaceAll('"', '""')}"`
-  // Punto y coma como separador: es lo que espera Excel configurado en español
   const contenido = [columnas, ...lineas].map((fila) => fila.map(aCelda).join(';')).join('\r\n')
 
-  // Un carácter invisible al inicio (BOM) hace que Excel reconozca los acentos
   const BOM = String.fromCharCode(0xfeff)
   return {
     archivo: new Blob([BOM + contenido], { type: 'text/csv;charset=utf-8' }),

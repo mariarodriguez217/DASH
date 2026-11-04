@@ -1,7 +1,6 @@
 <!--
   Pantalla de tickets: filtros, tabla paginada y exportación a CSV.
-  Datos: GET /api/tickets (la paginación y los filtros los resuelve el back,
-  así el navegador nunca carga los 10.000 tickets de una vez).
+  Datos: GET /api/tickets (la paginación y los filtros los resuelve el back).
 -->
 <script setup>
 import { ref, reactive, computed, watch, onMounted } from 'vue'
@@ -17,8 +16,7 @@ const router = useRouter()
 const CAMPOS_FILTRO = ['tecnico_id', 'estado', 'prioridad', 'categoria', 'desde', 'hasta']
 const OPCIONES_POR_PAGINA = [20, 50, 100]
 
-// Los filtros se leen de la URL: así un listado filtrado se puede compartir
-// o volver a abrir (heurística 6: reconocer en lugar de recordar)
+// Leer filtros iniciales de la URL
 function leerFiltrosDeUrl() {
   const filtros = {}
   for (const campo of CAMPOS_FILTRO) filtros[campo] = route.query[campo] ?? ''
@@ -38,15 +36,13 @@ const tecnicos = ref([])
 
 const hayFiltros = computed(() => CAMPOS_FILTRO.some((campo) => filtros[campo] !== ''))
 
-// Prevención de errores (heurística 5): no se busca con un rango de fechas imposible
+// Prevención de errores: validar rango de fechas
 const errorFechas = computed(() =>
   filtros.desde && filtros.hasta && filtros.desde > filtros.hasta
     ? 'La fecha "hasta" no puede ser anterior a "desde".'
     : '',
 )
 
-// Cada búsqueda lleva un número; si llega tarde la respuesta de una búsqueda
-// vieja (por ejemplo, al cambiar filtros rápido), se descarta.
 let numeroDeConsulta = 0
 
 async function cargarTickets() {
@@ -68,7 +64,7 @@ async function cargarTickets() {
   }
 }
 
-// La lista de técnicos para el filtro sale del ranking de métricas
+// Cargar lista de técnicos para el filtro
 async function cargarTecnicos() {
   try {
     const metricas = await obtenerMetricas()
@@ -77,7 +73,7 @@ async function cargarTecnicos() {
       nombre: t.nombre,
     }))
   } catch {
-    // Si falla, el filtro queda solo con "Todos" y la pantalla sigue funcionando
+    // Si falla, el filtro queda disponible solo con la opción por defecto
   }
 }
 
@@ -86,32 +82,68 @@ function actualizarUrl() {
   for (const campo of CAMPOS_FILTRO) if (filtros[campo] !== '') query[campo] = filtros[campo]
   if (pagina.value > 1) query.page = pagina.value
   if (porPagina.value !== 20) query.limit = porPagina.value
-  router.replace({ query })
+  
+  // Evitar llamadas duplicadas o innecesarias si la query es idéntica
+  router.replace({ query }).catch(() => {})
 }
 
 function limpiarFiltros() {
   for (const campo of CAMPOS_FILTRO) filtros[campo] = ''
 }
 
-// Si cambia algún filtro, volvemos a la primera página
-watch(filtros, () => {
-  pagina.value = 1
-})
+// Bandera para evitar bucles entre la URL y los filtros locales
+let sincronizandoUrl = false
 
-// Ante cualquier cambio de filtros, página o cantidad: actualizar URL y volver a pedir
-watch([() => ({ ...filtros }), pagina, porPagina], () => {
+// 1. Observar cambios en los filtros locales
+watch(
+  filtros,
+  () => {
+    if (sincronizandoUrl) return
+    pagina.value = 1 // Volver a la primera página ante un nuevo filtro
+    actualizarUrl()
+    cargarTickets()
+  },
+  { deep: true },
+)
+
+// 2. Observar cambios en la paginación
+watch([pagina, porPagina], () => {
+  if (sincronizandoUrl) return
   actualizarUrl()
   cargarTickets()
 })
 
-// Si la URL cambia desde afuera (por ejemplo, al tocar "Tickets" en el menú
-// o un técnico en el dashboard), copiamos esos valores a los filtros
+// 3. Sincronizar si la URL cambia desde afuera (ej. dashboard o menú)
 watch(
   () => route.query,
   (query) => {
+    sincronizandoUrl = true
+    let cambioDetectado = false
+
     for (const campo of CAMPOS_FILTRO) {
       const valor = query[campo] ?? ''
-      if (filtros[campo] !== valor) filtros[campo] = valor
+      if (filtros[campo] !== valor) {
+        filtros[campo] = valor
+        cambioDetectado = true
+      }
+    }
+
+    const nuevaPagina = Number(query.page) || 1
+    if (pagina.value !== nuevaPagina) {
+      pagina.value = nuevaPagina
+      cambioDetectado = true
+    }
+
+    const nuevoLimite = Number(query.limit) || 20
+    if (porPagina.value !== nuevoLimite) {
+      porPagina.value = nuevoLimite
+      cambioDetectado = true
+    }
+
+    sincronizandoUrl = false
+
+    if (cambioDetectado) {
+      cargarTickets()
     }
   },
 )
@@ -146,7 +178,6 @@ async function exportar() {
         progreso.value = `${actual} de ${totalPaginas}`
       },
     )
-    // Creamos un enlace temporal al archivo y lo "clickeamos" para descargarlo
     const url = URL.createObjectURL(archivo)
     const enlace = document.createElement('a')
     enlace.href = url
@@ -270,7 +301,6 @@ async function exportar() {
       </div>
 
       <template v-else>
-        <!-- Mientras llega la página nueva, la anterior queda visible pero atenuada -->
         <div :class="{ actualizando: cargando }" :aria-busy="cargando">
           <TablaTickets :tickets="resultado.data" />
         </div>

@@ -2,7 +2,7 @@ const pool = require('../config/db');
 
 const obtenerTickets = async (req, res) => {
   try {
-    const { tecnico_id, estado, prioridad, categoria, desde, hasta } = req.query;
+    const { tecnico_id, estado, prioridad, desde, hasta } = req.query;
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
     const offset = (page - 1) * limit;
@@ -14,28 +14,30 @@ const obtenerTickets = async (req, res) => {
       valores.push(valor);
       condiciones.push(sql.replace('?', `$${valores.length}`));
     };
-    //esto es para agregar el filtro seun lo que el usuario quiera y hacer la consulta
-    if (tecnico_id) agregar('k.tecnico_id = ?', tecnico_id);
-    if (estado)     agregar('k.estado = ?', estado);
-    if (prioridad)  agregar('k.prioridad = ?', prioridad);
-    if (categoria)  agregar('k.categoria = ?', categoria);
-    if (desde)      agregar('k.fecha_creacion >= ?', desde);
-    if (hasta)      agregar('k.fecha_creacion <= ?', hasta);
+
+    if (tecnico_id && tecnico_id !== '') agregar('k.tecnico_id = ?', parseInt(tecnico_id, 10));
+    if (estado && estado !== '')         agregar('k.estado = ?', estado);
+    if (prioridad && prioridad !== '')   agregar('k.prioridad = ?', prioridad);
+    if (desde && desde !== '')           agregar('k.fecha_creacion >= ?', desde);
+    if (hasta && hasta !== '')           agregar('k.fecha_creacion <= ?', hasta);
 
     const where = condiciones.length ? `WHERE ${condiciones.join(' AND ')}` : '';
 
     const totalResult = await pool.query(
-      `SELECT COUNT(*)::int AS total FROM tickets k ${where}`,
+      `SELECT COUNT(*)::int AS total
+       FROM tickets k
+       LEFT JOIN tecnicos t ON t.id = k.tecnico_id
+       ${where}`,
       valores
     );
-    const total = totalResult.rows[0].total;
+    const total = totalResult.rows[0]?.total || 0;
 
     const { rows } = await pool.query(
-      `SELECT k.id, k.titulo, k.descripcion, k.estado, k.prioridad, k.categoria,
+      `SELECT k.id, k.titulo, k.descripcion, k.estado, k.prioridad,
               k.fecha_creacion, k.fecha_resolucion,
-              t.id AS tecnico_id, t.nombre AS tecnico
+              t.id AS tecnico_id, COALESCE(t.nombre, 'Sin asignar') AS tecnico
        FROM tickets k
-       JOIN tecnicos t ON t.id = k.tecnico_id
+       LEFT JOIN tecnicos t ON t.id = k.tecnico_id
        ${where}
        ORDER BY k.fecha_creacion DESC
        LIMIT $${valores.length + 1} OFFSET $${valores.length + 2}`,
@@ -50,12 +52,11 @@ const obtenerTickets = async (req, res) => {
       totalPages: Math.ceil(total / limit)
     });
   } catch (error) {
+    console.error('Error detallado en obtenerTickets:', error);
     res.status(500).json({ error: 'Error al obtener los tickets', detalle: error.message });
   }
 };
-//estas metricas te dan los porcentajs de realizados en progreso y pendientes, 
-// si quieren agregar mas pueden hacerlo, solo puse estos para ver si funciona
-// 3. Obtener las métricas (generales + por técnico)
+
 const obtenerMetricas = async (req, res) => {
   try {
     const general = await pool.query(`
